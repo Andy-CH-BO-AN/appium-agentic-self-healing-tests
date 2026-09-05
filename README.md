@@ -2,263 +2,169 @@
 
 [繁體中文](README.zh-TW.md) | English
 
-Automated, agent-assisted self-healing end-to-end test suite for Android applications using Appium.
+Automated, agent-assisted self-healing end-to-end (E2E) test suite for Android applications using Appium and pytest.
 
 ---
 
-## Target Execution Environment: Android Emulator Only
+## What Is This?
 
-> **This repository currently uses Android Emulator as its only supported execution target. Physical Android devices are intentionally out of scope.**
+This project provides an Android-first mobile test automation framework designed to run deterministic end-to-end UI tests against native Android apps and serve as the foundation for AI-assisted self-healing locators.
 
-The primary goal of this project is to build a reproducible, automated, and CI-portable Android Appium test environment. An Android Emulator is the standard execution environment.
+### Target Environment: Android Emulator Only
 
-We intentionally do not consider or support:
-- USB debugging or physical device authorization
-- Vendor-specific Android device behavioral quirks
-- USB cable connection handling
-- Physical device provisioning
-- Physical-device-specific Appium capabilities
+> **This repository uses Android Emulator as its only supported execution target.** Physical Android devices are intentionally out of scope.
+
+Standardizing on the Android Emulator provides a consistent, fully automated, and CI-portable execution environment without dealing with USB cables, OEM-specific quirks, or manual device authorizations.
 
 ---
 
-## Phase 1 Execution Stack
-
-Phase 1 relies on the following execution chain:
+## Architecture & Execution Flow
 
 ```text
-pytest
+pytest (Test Runner & Driver Lifecycle)
   ↓
 Appium Python Client
   ↓
-Appium Server
+Appium Server (port 4723)
   ↓
 UiAutomator2 Driver
   ↓
 adb
   ↓
-Android Emulator
+Android Emulator (API 34, AVD: appium-test-api34)
   ↓
-Sauce Labs My Demo App Android (2.2.0)
+Sauce Labs My Demo App Android
 ```
+
+### Responsibility Boundary
+
+- **Environment / Developer / CI**: Manages infrastructure — Android SDK, AVD creation, emulator process, Appium server daemon, and APK download.
+- **pytest**: Manages test execution — reads configuration, opens UiAutomator2 driver sessions, executes assertions with explicit synchronization, and cleanly tears down sessions (`driver.quit()`).
 
 ---
 
-## Runtime Responsibility Boundary
+## Prerequisites & Baseline
 
-To ensure test portability and clean CI orchestration, responsibilities are strictly separated:
-
-```text
-Environment / Developer / CI
-├── Android SDK CLI tooling & Platform Tools
-├── Android AVD creation (`appium-test-api34`)
-├── Android Emulator process management
-├── Appium Server lifecycle (`appium`)
-└── Target APK download (`apps/mda-2.2.0-238.apk`)
-
-pytest
-├── Read runtime configuration (`src/appium_self_heal/config.py`)
-├── Initialize Appium WebDriver session (`tests/conftest.py`)
-├── Execute smoke test verification (`tests/smoke/test_app_launch.py`)
-└── Teardown WebDriver session (`driver.quit()`)
-```
-
-**Pytest does not manage infrastructure**: It does not install the Android SDK, create AVDs, launch emulators, start the Appium server, or auto-download APK files.
-
----
-
-## Technology Stack & Prerequisites
-
-### Prerequisites
+### Requirements
 - **Python**: `>= 3.10`
 - **Java JDK**: `>= 17`
 - **Node.js**: `>= 20.19`
 - **npm**: `>= 10`
 - **Android SDK Command-line Tools** (`cmdline-tools;latest`)
 - **Android Platform Tools** (`adb`)
-- **Android Build Tools** (`build-tools;34.0.0` / `apksigner`)
+- **Android Build Tools** (`build-tools;34.0.0` with `apksigner`)
 - **Android Emulator** (`emulator`)
 - **Android System Image** (API 34 / Android 14)
-- **Configured AVD** (`appium-test-api34`)
 - **Appium Server**: `>= 3.0`
 - **Appium UiAutomator2 Driver** (`appium driver install uiautomator2`)
-- **Target Application**: [Sauce Labs My Demo App Android 2.2.0](https://github.com/saucelabs/my-demo-app-android/releases) (`mda-2.2.0-238.apk`)
-
-### Validated Baseline
-This repository has been live-validated with:
-- **Host Architecture**: Apple Silicon (macOS arm64, Darwin 25.6.0)
-- **Node.js / npm**: `v26.0.0` / `11.12.1`
-- **Android Platform**: Android 14 / API 34 (`system-images;android-34;google_apis;arm64-v8a`)
-- **Android Build Tools**: `34.0.0`
-- **Appium Server**: `3.7.0`
-- **UiAutomator2 Driver**: `8.6.1`
-- **Target Application**: Sauce Labs My Demo App Android `2.2.0` (`mda-2.2.0-238.apk`)
 
 > [!NOTE]
-> **Android Studio is NOT a required dependency.** All environment preparation is accomplished entirely via the Android SDK command-line tools.
+> **Android Studio is NOT required.** The entire environment is established via official Android SDK command-line tools.
+
+### Validated Baseline
+Tested and verified with:
+- **Host**: macOS Apple Silicon (arm64, Darwin 25.6.0)
+- **Node.js / npm**: `v26.0.0` / `11.12.1`
+- **Android Platform**: Android 14 / API 34 (`system-images;android-34;google_apis;arm64-v8a`)
+- **Appium Server**: `3.7.0`
+- **UiAutomator2 Driver**: `8.6.1`
+- **Target App**: Sauce Labs My Demo App Android `2.2.0` (`mda-2.2.0-238.apk`)
 
 ---
 
-## Baseline Emulator Configuration
+## Quick Start / How to Run
 
-- **Platform Version**: Android 14 / API 34
-- **Default AVD Name**: `appium-test-api34`
-- **Architecture & System Images**:
-  - **Apple Silicon (macOS arm64)**: `system-images;android-34;google_apis;arm64-v8a`
-  - **x86_64 Host / CI**: `system-images;android-34;google_apis;x86_64`
-- **Appium `deviceName`**: Set to generic `"Android Emulator"` (AVD name belongs to setup layer, not test capabilities).
+Follow these steps to set up the environment and run the test suite from scratch.
 
----
-
-## CLI-First Emulator Setup Guide
-
-### 1. Configure Android Environment Variables
+### 1. Set Android Environment Variables
 Add to your shell profile (`~/.zshrc` or `~/.bashrc`):
 
 ```bash
-export ANDROID_HOME="$HOME/Library/Android/sdk" # macOS default, adjust if custom
-export PATH="$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$ANDROID_HOME/emulator:$PATH"
+export ANDROID_HOME="$HOME/Library/Android/sdk" # or /opt/homebrew/share/android-commandlinetools
+export PATH="$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$ANDROID_HOME/emulator:$ANDROID_HOME/build-tools/34.0.0:$PATH"
 ```
 
-Verify `adb` is available:
-```bash
-adb version
-```
-
-### 2. Install Platform Tools, Emulator & System Image
-Accept licenses and install baseline packages:
+### 2. Install Android SDK Packages & Create AVD
+Accept licenses and install platform components:
 
 ```bash
 sdkmanager --licenses
 
 # For Apple Silicon (arm64):
 sdkmanager "platform-tools" "emulator" "build-tools;34.0.0" "platforms;android-34" "system-images;android-34;google_apis;arm64-v8a"
-
-# For x86_64 hosts:
-sdkmanager "platform-tools" "emulator" "build-tools;34.0.0" "platforms;android-34" "system-images;android-34;google_apis;x86_64"
-```
-
-### 3. Create the AVD
-```bash
-# Apple Silicon (arm64):
 avdmanager create avd -n appium-test-api34 -k "system-images;android-34;google_apis;arm64-v8a" --force
 
-# x86_64 hosts:
+# For x86_64 hosts (Linux / Intel Mac):
+sdkmanager "platform-tools" "emulator" "build-tools;34.0.0" "platforms;android-34" "system-images;android-34;google_apis;x86_64"
 avdmanager create avd -n appium-test-api34 -k "system-images;android-34;google_apis;x86_64" --force
 ```
 
-### 4. Launch the Emulator via CLI
-Standard GUI launch for local development:
+### 3. Install Appium & UiAutomator2 Driver
 ```bash
-emulator -avd appium-test-api34
-```
-
-Headless launch (for CI or resource-constrained environments):
-```bash
-emulator -avd appium-test-api34 -no-window -no-audio -no-boot-anim -gpu swiftshader_indirect
-```
-
-### 5. Verify Emulator Readiness
-Do not assume `adb devices` alone means Android is ready. Verify both the device attachment and the OS boot completion using the repository helper script, which enforces a deadline-controlled polling loop:
-
-```bash
-# Recommended: repository helper script (handles attachment + boot completion with timeout):
-./scripts/wait_for_emulator.sh
-```
-
-Override timeout if necessary (default is 120s):
-```bash
-EMULATOR_BOOT_TIMEOUT_SECONDS=180 ./scripts/wait_for_emulator.sh
-```
-
-Once ready, `adb devices` will display:
-```text
-emulator-5554    device
-```
-
----
-
-## Appium Server Setup & Running Tests
-
-### 1. Install Dependencies
-```bash
-# Install Appium and UiAutomator2 driver
 npm install -g appium
 appium driver install uiautomator2
+```
 
-# Install Python test dependencies
+### 4. Install Python Dependencies
+```bash
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -e .
 ```
 
-### 2. Download Target APK
-Place the target APK in `apps/`:
+### 5. Download Target APK
 ```bash
 mkdir -p apps
-# Download Sauce Labs My Demo App Android 2.2.0 release APK into apps/mda-2.2.0-238.apk
+curl -L -o apps/mda-2.2.0-238.apk https://github.com/saucelabs/my-demo-app-android/releases/download/2.2.0/mda-2.2.0-25.apk
 ```
 
-### 3. Start Appium Server
+### 6. Start the Emulator & Verify Readiness
+Start the emulator (use `-no-window` for headless/CI mode):
+
 ```bash
+# In Terminal 1:
+emulator -avd appium-test-api34 -no-window -no-audio -no-boot-anim -gpu swiftshader_indirect
+```
+
+Wait until the emulator is attached and fully booted using the helper script:
+```bash
+./scripts/wait_for_emulator.sh
+```
+
+### 7. Start Appium Server
+```bash
+# In Terminal 2:
 appium --address 127.0.0.1 --port 4723
 ```
 
-### 4. Execute Smoke Test
+### 8. Run Tests
 ```bash
+# In Terminal 3 (with venv active):
 pytest tests/smoke/test_app_launch.py -v
 ```
 
-Runtime settings can be overridden via environment variables:
-- `APPIUM_SERVER_URL`: Appium endpoint (default: `http://127.0.0.1:4723`)
-- `ANDROID_PLATFORM_VERSION`: Target Android version (default: `"14"`)
-- `ANDROID_DEVICE_NAME`: Capabilities device name (default: `"Android Emulator"`)
-- `ANDROID_APP_PATH`: Relative or absolute path to APK (default: `"apps/mda-2.2.0-238.apk"`)
-- `EXPLICIT_WAIT_TIMEOUT_SECONDS`: UI wait timeout (default: `10.0`)
+---
+
+## Configuration
+
+Settings can be customized via environment variables:
+
+| Variable | Default | Description |
+|---|---|---|
+| `APPIUM_SERVER_URL` | `http://127.0.0.1:4723` | Appium server connection URL |
+| `ANDROID_PLATFORM_VERSION` | `"14"` | Android platform version |
+| `ANDROID_DEVICE_NAME` | `"Android Emulator"` | Appium capabilities device name |
+| `ANDROID_APP_PATH` | `"apps/mda-2.2.0-238.apk"` | Path to target APK file |
+| `EXPLICIT_WAIT_TIMEOUT_SECONDS` | `10.0` | Default timeout for UI state synchronization |
+| `EMULATOR_BOOT_TIMEOUT_SECONDS` | `120` | Timeout for `wait_for_emulator.sh` boot check |
 
 ---
 
-## Phase 1 Non-Goals
+## Repository Structure
 
-Phase 1 deliberately excludes:
-- Physical Android device support
-- USB device setup and connection debugging
-- Physical-device-specific Appium capabilities
-- Business E2E test scenarios (login, cart, checkout)
-- Screen/Page Object abstractions (kept direct for smoke test)
-- AI self-healing or LLM repair logic
-
----
-
-## Phase 1 Completion Criteria Checklist
-
-Phase 1 is complete when all of the following hold:
-- [x] Android Studio is not a required dependency
-- [x] Android SDK CLI-first setup is fully documented
-- [x] Reproducible baseline emulator configuration is documented (API 34)
-- [x] AVD creation via CLI is documented
-- [x] Emulator CLI launch (GUI and headless) is documented
-- [x] `adb` recognizes the emulator and boot readiness is verified
-- [x] Pytest fixture manages Appium driver lifecycle with reliable teardown
-- [x] UiAutomator2 session connects to emulator via Appium Python Client
-- [x] My Demo App launches on the emulator to a verified initial UI state
-- [x] Minimal app-launch smoke test validates the end-to-end runtime chain
-- [x] Zero arbitrary `time.sleep()` calls
-- [x] Zero global driver state
-- [x] APK binaries are not committed to Git (`.gitignore` protects `*.apk`)
-- [x] Physical devices are explicitly unsupported
-- [x] Complex business E2E scenarios are deferred to Phase 2
-- [x] Self-healing and LLM logic are deferred to later milestones
-
----
-
-## Repository Structure & Agent Collaboration
-
-- [`AGENTS.md`](AGENTS.md): Repository-wide engineering rules, synchronization invariants, and locator guidelines.
-- [`ai/agent-instructions/`](ai/agent-instructions/): Canonical instructions for dedicated agent roles (`senior-mobile-sdet`, `test-architect`, `reviewer`).
-- [`.codex/agents/`](.codex/agents/): Codex runtime adapters.
-- [`.agents/agents/`](.agents/agents/): Antigravity runtime adapters.
-- [`.agents/skills/`](.agents/skills/): Reusable skills for Appium Android, mobile test design, and Git conventions.
-- [`src/appium_self_heal/`](src/appium_self_heal/): Minimal runtime configuration.
-- [`tests/`](tests/): Appium fixtures (`conftest.py`) and smoke tests (`tests/smoke/`).
-- [`scripts/`](scripts/): Environment readiness scripts (`wait_for_emulator.sh`).
-- [`pyproject.toml`](pyproject.toml): Repository tooling and runtime dependencies.
+- [`src/appium_self_heal/`](src/appium_self_heal/): Core runtime configuration and utilities.
+- [`tests/conftest.py`](tests/conftest.py): Pytest fixture managing Appium driver lifecycle and session teardown.
+- [`tests/smoke/`](tests/smoke/): Smoke test suite verifying session creation, app launch, and UI synchronization.
+- [`scripts/wait_for_emulator.sh`](scripts/wait_for_emulator.sh): Standalone script verifying emulator attachment and boot completion.
+- [`AGENTS.md`](AGENTS.md): Repository engineering standards, synchronization rules, and locator priorities.
+- [`ai/agent-instructions/`](ai/agent-instructions/): Canonical agent role definitions (`senior-mobile-sdet`, `test-architect`, `reviewer`).
