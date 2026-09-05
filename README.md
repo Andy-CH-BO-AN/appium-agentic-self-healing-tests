@@ -10,11 +10,13 @@ Automated, agent-assisted self-healing end-to-end test suite for Android applica
 
 Mobile end-to-end (E2E) test suites frequently fail due to benign UI locator drift—such as updated resource IDs, modified accessibility labels, or layout restructurings.
 
-This repository provides an Android-first mobile test automation framework designed to:
+This repository is being built as an Android-first mobile test automation framework designed to:
 1. Execute reliable E2E tests against native Android applications.
 2. Detect locator failures and test drift during test runs.
 3. Propose scoped, verifiable repairs to Screen/Page Objects using AI agents.
 4. Validate proposed repairs deterministically through regression execution before human review.
+
+Current status: repository and agent foundation only. Appium runtime, executable E2E tests, CI workflows, and self-healing behavior will be introduced in later milestones.
 
 ## Technology Stack
 
