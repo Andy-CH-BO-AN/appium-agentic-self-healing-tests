@@ -40,9 +40,11 @@ Android 視圖元件辨識與 Web DOM 有本質上的不同。請一律遵守 An
 
 ## 3. Driver 與 Session 生命週期
 
-- **明確的 Driver 擁有權**：Appium driver 的建立與釋放一律透過 pytest fixture 管理，確保 teardown 必然執行。
+- **Android Emulator 唯一執行目標**：目前以 Android Emulator 作為唯一支援之執行環境，排除實體裝置與 USB setup 邏輯。
+- **明確的責任邊界**：pytest 不負責啟動或安裝 Emulator / Appium Server，僅假設環境層已確認 emulator 就緒（如透過 `sys.boot_completed` 檢查）。
+- **明確的 Driver 擁有權**：Appium driver 的建立與釋放一律透過 function-scoped pytest fixture 管理，確保 teardown 必然執行 `driver.quit()`。
 - **乾淨且可預期的初始狀態**：每個測試案例必須從已知狀態開始（全新啟動、重置或明確初始導航）。
-- **無跨測試隱式狀態**：測試絕不可依賴前一個測試留下的狀態或暫存。
+- **無跨測試隱式狀態**：測試絕不可依賴前一個測試留下的狀態或暫存，嚴禁全域 driver。
 
 ## 4. Screen / Page Objects
 

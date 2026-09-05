@@ -12,7 +12,9 @@
 ## 技術職責
 
 ### 1. Driver 與 Session 生命週期
-- 建立單一且明確的 driver 擁有權模型。
+- 執行目標目前唯一限定為 Android Emulator；不支援實體裝置、不撰寫實體裝置專屬 capabilities 或 setup 邏輯。
+- 嚴格遵守環境與測試責任邊界：測試 fixture 預設執行環境（Developer / CI）已備妥啟動完成之 Emulator 與 Appium Server，pytest 嚴禁負責安裝或啟動 infrastructure。
+- 建立單一且明確的 driver 擁有權模型（以 function-scoped fixture 為優先，避免全域 driver）。
 - 確保每個測試開始前應用程式處於已知且乾淨的狀態（全新 session、狀態清除或明確初始導航）。
 - 防止跨測試的隱式狀態洩漏。
 - 在 teardown fixture 中落實 driver 資源釋放與 session 終止。

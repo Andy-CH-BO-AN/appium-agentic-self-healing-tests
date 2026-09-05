@@ -4,10 +4,11 @@
 
 ## 專案核心
 
-- **專案範疇**：以 Android 為優先（Android-first）的行動端自動化測試。
+- **專案範疇**：以 Android 為優先（Android-first）的行動端自動化測試。目前以 **Android Emulator 作為唯一支援的執行環境（Android Emulator only）**；實體 Android 裝置明確不在支援範疇內。
 - **技術堆疊**：Python、pytest、Appium 與 UiAutomator2。
 - **簡單為先**：優先採用簡單且明確的實作，避免過早抽象化。在沒有明確需求前，不引入通用的包裝框架。
 - **人類主導**：人類工程師保有最終架構決策與程式碼合併權限。
+- **執行環境職責邊界**：pytest 測試與 fixture 僅負責讀取設定、建立 Appium driver 與執行測試案例。Android SDK、AVD 建立、Emulator 啟動、Appium Server 與 APK 下載管理屬於環境/CI 層，嚴禁在 pytest 中實作 emulator/infrastructure provisioning。
 
 ## 行動端測試工程原則
 
