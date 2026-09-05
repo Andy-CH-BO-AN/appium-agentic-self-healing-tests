@@ -119,10 +119,10 @@ adb version
 sdkmanager --licenses
 
 # Apple Silicon (arm64):
-sdkmanager "platform-tools" "emulator" "platforms;android-34" "system-images;android-34;google_apis;arm64-v8a"
+sdkmanager "platform-tools" "emulator" "build-tools;34.0.0" "platforms;android-34" "system-images;android-34;google_apis;arm64-v8a"
 
 # x86_64 主機:
-sdkmanager "platform-tools" "emulator" "platforms;android-34" "system-images;android-34;google_apis;x86_64"
+sdkmanager "platform-tools" "emulator" "build-tools;34.0.0" "platforms;android-34" "system-images;android-34;google_apis;x86_64"
 ```
 
 ### 3. 透過 CLI 建立 AVD

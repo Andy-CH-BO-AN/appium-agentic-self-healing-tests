@@ -119,10 +119,10 @@ Accept licenses and install baseline packages:
 sdkmanager --licenses
 
 # For Apple Silicon (arm64):
-sdkmanager "platform-tools" "emulator" "platforms;android-34" "system-images;android-34;google_apis;arm64-v8a"
+sdkmanager "platform-tools" "emulator" "build-tools;34.0.0" "platforms;android-34" "system-images;android-34;google_apis;arm64-v8a"
 
 # For x86_64 hosts:
-sdkmanager "platform-tools" "emulator" "platforms;android-34" "system-images;android-34;google_apis;x86_64"
+sdkmanager "platform-tools" "emulator" "build-tools;34.0.0" "platforms;android-34" "system-images;android-34;google_apis;x86_64"
 ```
 
 ### 3. Create the AVD

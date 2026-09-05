@@ -31,7 +31,11 @@ def appium_driver() -> Generator[webdriver.Remote, None, None]:
     options.platform_version = config.platform_version
     options.app = str(app_path.resolve())
     options.app_package = "com.saucelabs.mydemoapp.android"
-    options.app_activity = "com.saucelabs.mydemoapp.android.view.activities.MainActivity"
+    options.app_activity = "com.saucelabs.mydemoapp.android.view.activities.SplashActivity"
+    options.app_wait_activity = (
+        "com.saucelabs.mydemoapp.android.view.activities.MainActivity,"
+        "com.saucelabs.mydemoapp.android.view.activities.SplashActivity"
+    )
 
     driver = webdriver.Remote(
         command_executor=config.appium_server_url,
