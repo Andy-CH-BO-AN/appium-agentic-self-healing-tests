@@ -71,15 +71,27 @@ pytest
 ### 前置需求（Prerequisites）
 - **Python**：`>= 3.10`
 - **Java JDK**：`>= 17`
-- **Node.js**：`>= 18`
+- **Node.js**：`>= 20.19`
+- **npm**：`>= 10`
 - **Android SDK Command-line Tools**（`cmdline-tools;latest`）
 - **Android Platform Tools**（`adb`）
+- **Android Build Tools**（`build-tools;34.0.0` / `apksigner`）
 - **Android Emulator**（`emulator`）
 - **Android System Image**（API 34 / Android 14）
 - **已設定之 AVD**（`appium-test-api34`）
-- **Appium Server**：`>= 2.0`
+- **Appium Server**：`>= 3.0`
 - **Appium UiAutomator2 Driver**（`appium driver install uiautomator2`）
 - **目標展示應用程式**：[Sauce Labs My Demo App Android 2.2.0](https://github.com/saucelabs/my-demo-app-android/releases)（`mda-2.2.0-238.apk`）
+
+### 實體驗證基準環境（Validated Baseline）
+本 repository 已於以下環境完成真實執行驗證（live-validated）：
+- **主機硬體架構**：Apple Silicon（macOS arm64, Darwin 25.6.0）
+- **Node.js / npm**：`v26.0.0` / `11.12.1`
+- **Android 目標平台**：Android 14 / API 34（`system-images;android-34;google_apis;arm64-v8a`）
+- **Android Build Tools**：`34.0.0`
+- **Appium Server**：`3.7.0`
+- **UiAutomator2 Driver**：`8.6.1`
+- **目標展示應用程式**：Sauce Labs My Demo App Android `2.2.0`（`mda-2.2.0-238.apk`）
 
 > [!NOTE]
 > **Android Studio 絕非必要相依**。所有環境建置皆可純透過 Android SDK command-line tooling（CLI）完成。
@@ -146,15 +158,16 @@ emulator -avd appium-test-api34 -no-window -no-audio -no-boot-anim -gpu swiftsha
 ```
 
 ### 5. 驗證模擬器就緒狀態（Readiness）
-不要只執行 `adb devices` 就假設系統已準備就緒。請確認系統屬性 `sys.boot_completed`：
+不要只執行 `adb devices` 就假設系統已準備就緒。請使用 repository 提供的檢查腳本，以具備 deadline 控制的輪詢迴圈驗證裝置連線與系統完全開機：
 
 ```bash
-# 使用 repository 提供的輕量檢查腳本：
+# 推薦方式：使用 repository 輕量檢查腳本（涵蓋裝置連線與開機就緒，具備 timeout 控制）：
 ./scripts/wait_for_emulator.sh
+```
 
-# 或直接使用 adb 一行指令檢查：
-adb wait-for-device
-adb shell 'while [[ "$(getprop sys.boot_completed)" != "1" ]]; do sleep 2; done'
+如需調整逾時秒數（預設為 120 秒）：
+```bash
+EMULATOR_BOOT_TIMEOUT_SECONDS=180 ./scripts/wait_for_emulator.sh
 ```
 
 當就緒時，`adb devices` 會顯示：

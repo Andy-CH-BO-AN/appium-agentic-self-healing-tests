@@ -71,15 +71,27 @@ pytest
 ### Prerequisites
 - **Python**: `>= 3.10`
 - **Java JDK**: `>= 17`
-- **Node.js**: `>= 18`
+- **Node.js**: `>= 20.19`
+- **npm**: `>= 10`
 - **Android SDK Command-line Tools** (`cmdline-tools;latest`)
 - **Android Platform Tools** (`adb`)
+- **Android Build Tools** (`build-tools;34.0.0` / `apksigner`)
 - **Android Emulator** (`emulator`)
 - **Android System Image** (API 34 / Android 14)
 - **Configured AVD** (`appium-test-api34`)
-- **Appium Server**: `>= 2.0`
+- **Appium Server**: `>= 3.0`
 - **Appium UiAutomator2 Driver** (`appium driver install uiautomator2`)
 - **Target Application**: [Sauce Labs My Demo App Android 2.2.0](https://github.com/saucelabs/my-demo-app-android/releases) (`mda-2.2.0-238.apk`)
+
+### Validated Baseline
+This repository has been live-validated with:
+- **Host Architecture**: Apple Silicon (macOS arm64, Darwin 25.6.0)
+- **Node.js / npm**: `v26.0.0` / `11.12.1`
+- **Android Platform**: Android 14 / API 34 (`system-images;android-34;google_apis;arm64-v8a`)
+- **Android Build Tools**: `34.0.0`
+- **Appium Server**: `3.7.0`
+- **UiAutomator2 Driver**: `8.6.1`
+- **Target Application**: Sauce Labs My Demo App Android `2.2.0` (`mda-2.2.0-238.apk`)
 
 > [!NOTE]
 > **Android Studio is NOT a required dependency.** All environment preparation is accomplished entirely via the Android SDK command-line tools.
@@ -146,15 +158,16 @@ emulator -avd appium-test-api34 -no-window -no-audio -no-boot-anim -gpu swiftsha
 ```
 
 ### 5. Verify Emulator Readiness
-Do not assume `adb devices` alone means Android is ready. Verify both the device attachment and the OS boot completion:
+Do not assume `adb devices` alone means Android is ready. Verify both the device attachment and the OS boot completion using the repository helper script, which enforces a deadline-controlled polling loop:
 
 ```bash
-# Using the minimal repository helper script:
+# Recommended: repository helper script (handles attachment + boot completion with timeout):
 ./scripts/wait_for_emulator.sh
+```
 
-# Or via direct adb one-liner:
-adb wait-for-device
-adb shell 'while [[ "$(getprop sys.boot_completed)" != "1" ]]; do sleep 2; done'
+Override timeout if necessary (default is 120s):
+```bash
+EMULATOR_BOOT_TIMEOUT_SECONDS=180 ./scripts/wait_for_emulator.sh
 ```
 
 Once ready, `adb devices` will display:
