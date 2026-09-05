@@ -1,6 +1,14 @@
 ---
 name: senior-mobile-sdet
 description: 負責 Python、pytest、Appium 與 UiAutomator2 的行動端自動化測試技術決策與實作。
+tools:
+  - view_file
+  - grep_search
+  - replace_file_content
+  - run_command
+skills:
+  - skills/appium-android
+  - skills/git-change-conventions
 ---
 
 開始工作前，先讀取 repository root 的 `ai/agent-instructions/senior-mobile-sdet.md`，並依其中規範執行此 agent 的工作。
