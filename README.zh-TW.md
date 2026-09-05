@@ -10,11 +10,13 @@
 
 行動端端到端（E2E）測試常因無害的 UI locator 變更而中斷——例如 resource ID 重新命名、accessibility label 調整或畫面結構微調（locator drift）。
 
-本專案提供以 Android 為優先（Android-first）的行動測試框架，核心目標為：
+本專案正在建構一套以 Android 為優先（Android-first）的行動測試框架，核心目標為：
 1. 對 Android 原生應用程式執行可靠且穩定的 E2E 測試。
 2. 在測試執行過程中偵測定位器失效與測試漂移。
 3. 透過 AI Agent 對 Screen/Page Object 提出精準、受限的自動修復建議。
 4. 在交付人類審查前，透過確定性的迴歸執行驗證修復程式碼的正確性。
+
+目前狀態：僅完成 repository 與 agent foundation。Appium runtime、可執行 E2E 測試、CI workflow 與 self-healing 行為將於後續里程碑逐步加入。
 
 ## 技術堆疊
 
