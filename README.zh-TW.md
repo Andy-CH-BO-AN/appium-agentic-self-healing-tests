@@ -141,7 +141,14 @@ appium --address 127.0.0.1 --port 4723
 ### 8. 執行測試
 ```bash
 # 在終端機 3 執行（需先啟動 venv）：
+# Smoke 測試（App 啟動與商品列表就緒）
 pytest tests/smoke/test_app_launch.py -v
+
+# 跨畫面 E2E 測試（選取商品並驗證商品詳情資料一致性）
+pytest tests/e2e/test_product_details.py -v
+
+# 執行全部測試
+pytest tests/ -v
 ```
 
 ---
@@ -161,11 +168,23 @@ pytest tests/smoke/test_app_launch.py -v
 
 ---
 
+## 失敗診斷收集（Failure Diagnostics）
+
+當任何測試在 `setup` 或 `call` 階段執行失敗時，pytest hook 會自動於當下仍活躍的 driver session 擷取診斷檔案並輸出至 `test-results/<test-id>/`：
+- `screenshot.png`：失敗當下的畫面截圖。
+- `page-source.xml`：Android UI 視圖階層樹狀 XML，供 locator 檢視與後續 self-healing 分析。
+
+`test-results/` 已加入 `.gitignore`，不會進入版本控管。
+
+---
+
 ## 專案目錄結構
 
 - [`src/appium_self_heal/`](src/appium_self_heal/)：核心執行期設定模組與共用工具。
-- [`tests/conftest.py`](tests/conftest.py)：管理 Appium WebDriver 生命週期與 teardown 資源釋放的 pytest fixture。
-- [`tests/smoke/`](tests/smoke/)：驗證 session 建立、App 啟動與畫面同步的 smoke test 測試集。
+- [`src/appium_self_heal/screens/`](src/appium_self_heal/screens/)：Screen Object 模型（`BaseScreen`、`ProductsScreen`、`ProductDetailsScreen`），封裝畫面 locators、領域操作與可重複使用的明確等待同步基元。
+- [`tests/conftest.py`](tests/conftest.py)：管理 Appium WebDriver 生命週期與失敗診斷收集 hook 的 pytest fixture。
+- [`tests/smoke/`](tests/smoke/)：驗證 session 建立與 App 就緒的 smoke test 測試集。
+- [`tests/e2e/`](tests/e2e/)：驗證跨畫面使用者旅程與資料一致性的 E2E 測試集。
 - [`scripts/wait_for_emulator.sh`](scripts/wait_for_emulator.sh)：獨立之環境就緒檢查腳本，具備逾時控制。
 - [`AGENTS.md`](AGENTS.md)：定義 repository 全域工程規範、狀態同步準則與 locator 優先階層。
 - [`ai/agent-instructions/`](ai/agent-instructions/)：專責 Agent 角色的規範單一真相來源（`senior-mobile-sdet`、`test-architect`、`reviewer`）。
