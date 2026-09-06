@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import hashlib
+import json
 import logging
 import re
 from pathlib import Path
@@ -25,8 +26,12 @@ def _to_safe_test_id(nodeid: str) -> str:
     return f"{safe_name}-{digest}"
 
 
-def _capture_failure_diagnostics(driver: webdriver.Remote, nodeid: str) -> None:
-    """Capture screenshot and page source for a failed test.
+def _capture_failure_diagnostics(
+    driver: webdriver.Remote,
+    nodeid: str,
+    phase: str = "call",
+) -> None:
+    """Capture screenshot, page source, and minimal failure metadata for a failed test.
 
     Guarantees that diagnostic errors never mask or replace the original test failure.
     """
@@ -40,6 +45,14 @@ def _capture_failure_diagnostics(driver: webdriver.Remote, nodeid: str) -> None:
 
         page_source_path = results_dir / "page-source.xml"
         page_source_path.write_text(driver.page_source, encoding="utf-8")
+
+        failure_path = results_dir / "failure.json"
+        failure_data = {
+            "nodeid": nodeid,
+            "test_name": nodeid.split("::")[-1],
+            "phase": phase,
+        }
+        failure_path.write_text(json.dumps(failure_data, indent=2), encoding="utf-8")
     except Exception as exc:
         logger.warning(
             "Failed to capture test failure diagnostics for %s: %s",
@@ -61,7 +74,7 @@ def pytest_runtest_makereport(
     if report.when in ("setup", "call") and report.failed:
         driver = item.funcargs.get("appium_driver") if hasattr(item, "funcargs") else None
         if driver is not None:
-            _capture_failure_diagnostics(driver, item.nodeid)
+            _capture_failure_diagnostics(driver, item.nodeid, phase=report.when)
 
 
 @pytest.fixture(scope="function")
