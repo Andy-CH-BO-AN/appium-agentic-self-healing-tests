@@ -47,7 +47,8 @@ class CartScreen(BaseScreen):
         )
         return self.wait_visible((AppiumBy.ANDROID_UIAUTOMATOR, selector)).text
 
-    def cart_quantity(self) -> int:
+    @property
+    def quantity(self) -> int:
         """Return the item quantity displayed in the cart."""
         return int(self.wait_visible((AppiumBy.ID, "noTV")).text)
 

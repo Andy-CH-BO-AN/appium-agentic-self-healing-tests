@@ -111,3 +111,13 @@ def appium_driver() -> Generator[webdriver.Remote, None, None]:
         yield driver
     finally:
         driver.quit()
+
+
+@pytest.fixture(scope="function")
+def test_credentials() -> tuple[str, str]:
+    """Provide validated test username and password from configuration.
+
+    Validates credentials before starting the E2E user journey; fails fast
+    with ValueError if unset.
+    """
+    return config.test_username, config.test_password

@@ -4,20 +4,21 @@ from __future__ import annotations
 
 from appium.webdriver import Remote
 
-from appium_self_heal.config import config
 from appium_self_heal.screens.products import ProductsScreen
 
 
-def test_complete_checkout(appium_driver: Remote) -> None:
+def test_complete_checkout(
+    appium_driver: Remote,
+    test_credentials: tuple[str, str],
+) -> None:
     """Verify complete checkout journey from catalog to order confirmation screen.
 
     Simulates an end-to-end purchase: selects a catalog product, adds it to the cart,
     proceeds through authentication with test credentials, submits shipping and payment
     details, places the order, and verifies the final confirmation state.
     """
-    # Resolve credentials immediately before starting UI journey to guarantee fail-fast
-    username = config.test_username
-    password = config.test_password
+    # Validate credentials before starting E2E user journey; fails fast if unset
+    username, password = test_credentials
 
     target_product = "Sauce Labs Backpack"
 
