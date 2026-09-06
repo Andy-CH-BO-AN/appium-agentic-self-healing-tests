@@ -130,7 +130,7 @@ TEST_PASSWORD=<your-test-password>
 ```
 
 > [!NOTE]
-> `.env` is gitignored and must never be committed. Test credentials are automatically loaded via `python-dotenv` in `config.py`. If credentials are unset when executing checkout tests, the execution fails fast with an explicit `ValueError`. Non-secret deterministic test data (shipping addresses, mock payment cards) are defined directly within testcases rather than in `.env`.
+> `.env` is gitignored and must never be committed. Test credentials are automatically loaded via `python-dotenv` in `config.py`. Credentials are validated before starting the E2E user journey, failing fast with an explicit `ValueError` if unset. Non-secret deterministic test data (shipping addresses, mock payment cards) are defined directly within testcases rather than in `.env`.
 
 ### 6. Download Target APK
 ```bash
@@ -184,8 +184,8 @@ Settings can be customized via environment variables or `.env`:
 
 | Variable | Default | Description |
 |---|---|---|
-| `TEST_USERNAME` | *(None)* | Required for checkout E2E test; fails fast if unset |
-| `TEST_PASSWORD` | *(None)* | Required for checkout E2E test; fails fast if unset |
+| `TEST_USERNAME` | *(None)* | Required for checkout E2E test; validated before starting E2E user journey |
+| `TEST_PASSWORD` | *(None)* | Required for checkout E2E test; validated before starting E2E user journey |
 | `APPIUM_SERVER_URL` | `http://127.0.0.1:4723` | Appium server connection URL |
 | `ANDROID_PLATFORM_VERSION` | `"14"` | Android platform version |
 | `ANDROID_DEVICE_NAME` | `"Android Emulator"` | Appium capabilities device name |
@@ -210,7 +210,7 @@ When any test fails during `setup` or `call` execution, pytest automatically cap
 
 - [`src/appium_self_heal/`](src/appium_self_heal/): Core runtime configuration and utilities.
 - [`src/appium_self_heal/screens/`](src/appium_self_heal/screens/): Screen Object models (`BaseScreen`, `ProductsScreen`, `ProductDetailsScreen`, `CartScreen`, `LoginScreen`, `CheckoutAddressScreen`, `CheckoutPaymentScreen`, `CheckoutReviewScreen`, `CheckoutCompleteScreen`) encapsulating locators, domain actions, and explicit wait synchronization.
-- [`tests/conftest.py`](tests/conftest.py): Pytest fixture managing Appium driver lifecycle and failure diagnostics hook.
+- [`tests/conftest.py`](tests/conftest.py): Pytest fixtures managing Appium driver lifecycle, test credentials, and failure diagnostics hook.
 - [`tests/smoke/`](tests/smoke/): Smoke test suite verifying session creation and app readiness.
 - [`tests/e2e/`](tests/e2e/): Cross-screen E2E test suite validating user journeys (`test_product_details.py`, `test_cart.py`, `test_checkout.py`).
 - [`scripts/wait_for_emulator.sh`](scripts/wait_for_emulator.sh): Standalone script verifying emulator attachment and boot completion.

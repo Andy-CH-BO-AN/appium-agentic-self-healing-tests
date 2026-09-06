@@ -131,7 +131,7 @@ TEST_PASSWORD=<your-test-password>
 ```
 
 > [!NOTE]
-> `.env` 已加入 `.gitignore` 且嚴禁 commit。執行測試時，`config.py` 會透過 `python-dotenv` 自動載入 `.env`。若執行結帳測試時未設定測試帳密，程式將**立即 fail-fast** 並拋出清楚的 `ValueError`。非機密的固定測試假資料（運送地址、測試信用卡號等）直接在測試案例（testcase）內宣告，不放入 `.env`。
+> `.env` 已加入 `.gitignore` 且嚴禁 commit。執行測試時，`config.py` 會透過 `python-dotenv` 自動載入 `.env`。測試在開始 E2E user journey 前驗證 credentials；缺少設定時立即失敗並拋出清楚的 `ValueError`。非機密的固定測試假資料（運送地址、測試信用卡號等）直接在測試案例（testcase）內宣告，不放入 `.env`。
 
 ### 6. 下載測試目標 APK
 ```bash
@@ -185,8 +185,8 @@ pytest tests/ -v
 
 | 環境變數 | 預設值 | 說明 |
 |---|---|---|
-| `TEST_USERNAME` | *(無)* | 結帳 E2E 測試必要參數；未設定時立即 fail-fast |
-| `TEST_PASSWORD` | *(無)* | 結帳 E2E 測試必要參數；未設定時立即 fail-fast |
+| `TEST_USERNAME` | *(無)* | 結帳 E2E 測試必要參數；在開始 E2E user journey 前驗證，缺少設定時立即失敗 |
+| `TEST_PASSWORD` | *(無)* | 結帳 E2E 測試必要參數；在開始 E2E user journey 前驗證，缺少設定時立即失敗 |
 | `APPIUM_SERVER_URL` | `http://127.0.0.1:4723` | Appium Server 服務連線位址 |
 | `ANDROID_PLATFORM_VERSION` | `"14"` | Android 目標平台版本 |
 | `ANDROID_DEVICE_NAME` | `"Android Emulator"` | Appium capabilities 裝置名稱 |
@@ -211,7 +211,7 @@ pytest tests/ -v
 
 - [`src/appium_self_heal/`](src/appium_self_heal/)：核心執行期設定模組與共用工具。
 - [`src/appium_self_heal/screens/`](src/appium_self_heal/screens/)：Screen Object 模型（`BaseScreen`、`ProductsScreen`、`ProductDetailsScreen`、`CartScreen`、`LoginScreen`、`CheckoutAddressScreen`、`CheckoutPaymentScreen`、`CheckoutReviewScreen`、`CheckoutCompleteScreen`），封裝畫面 locators、領域操作與明確等待同步基元。
-- [`tests/conftest.py`](tests/conftest.py)：管理 Appium WebDriver 生命週期與失敗診斷收集 hook 的 pytest fixture。
+- [`tests/conftest.py`](tests/conftest.py)：管理 Appium WebDriver 生命週期、測試帳密 fixture 與失敗診斷收集 hook 的 pytest fixtures。
 - [`tests/smoke/`](tests/smoke/)：驗證 session 建立與 App 就緒的 smoke test 測試集。
 - [`tests/e2e/`](tests/e2e/)：驗證跨畫面使用者旅程與資料一致性的 E2E 測試集（`test_product_details.py`、`test_cart.py`、`test_checkout.py`）。
 - [`scripts/wait_for_emulator.sh`](scripts/wait_for_emulator.sh)：獨立之環境就緒檢查腳本，具備逾時控制。
