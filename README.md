@@ -115,13 +115,30 @@ pip install -r requirements.txt
 pip install -e ".[dev]"
 ```
 
-### 5. Download Target APK
+### 5. Configure Test Credentials
+The checkout end-to-end test requires authentication credentials. Create a local `.env` file from the provided template:
+
+```bash
+cp .env.example .env
+```
+
+Set valid test credentials in `.env`:
+
+```env
+TEST_USERNAME=<your-test-username>
+TEST_PASSWORD=<your-test-password>
+```
+
+> [!NOTE]
+> `.env` is gitignored and must never be committed. Test credentials are automatically loaded via `python-dotenv` in `config.py`. If credentials are unset when executing checkout tests, the execution fails fast with an explicit `ValueError`. Non-secret deterministic test data (shipping addresses, mock payment cards) are defined directly within testcases rather than in `.env`.
+
+### 6. Download Target APK
 ```bash
 mkdir -p apps
 curl -L -o apps/mda-2.2.0-238.apk https://github.com/saucelabs/my-demo-app-android/releases/download/2.2.0/mda-2.2.0-25.apk
 ```
 
-### 6. Start the Emulator & Verify Readiness
+### 7. Start the Emulator & Verify Readiness
 Start the emulator (use `-no-window` for headless/CI mode):
 
 ```bash
@@ -134,13 +151,13 @@ Wait until the emulator is attached and fully booted using the helper script:
 ./scripts/wait_for_emulator.sh
 ```
 
-### 7. Start Appium Server
+### 8. Start Appium Server
 ```bash
 # In Terminal 2:
 appium --address 127.0.0.1 --port 4723
 ```
 
-### 8. Run Tests
+### 9. Run Tests
 ```bash
 # In Terminal 3 (with venv active):
 # Smoke test (app launch and Products screen readiness)
@@ -148,6 +165,12 @@ pytest tests/smoke/test_app_launch.py -v
 
 # E2E test (cross-screen product selection and details validation)
 pytest tests/e2e/test_product_details.py -v
+
+# E2E test (add product to cart and verify cart consistency)
+pytest tests/e2e/test_cart.py -v
+
+# E2E test (complete checkout flow with authentication)
+pytest tests/e2e/test_checkout.py -v
 
 # Run all tests
 pytest tests/ -v
@@ -157,10 +180,12 @@ pytest tests/ -v
 
 ## Configuration
 
-Settings can be customized via environment variables:
+Settings can be customized via environment variables or `.env`:
 
 | Variable | Default | Description |
 |---|---|---|
+| `TEST_USERNAME` | *(None)* | Required for checkout E2E test; fails fast if unset |
+| `TEST_PASSWORD` | *(None)* | Required for checkout E2E test; fails fast if unset |
 | `APPIUM_SERVER_URL` | `http://127.0.0.1:4723` | Appium server connection URL |
 | `ANDROID_PLATFORM_VERSION` | `"14"` | Android platform version |
 | `ANDROID_DEVICE_NAME` | `"Android Emulator"` | Appium capabilities device name |
@@ -175,6 +200,7 @@ Settings can be customized via environment variables:
 When any test fails during `setup` or `call` execution, pytest automatically captures failure artifacts to `test-results/<test-id>/`:
 - `screenshot.png`: Visual snapshot of the screen at the moment of failure.
 - `page-source.xml`: Current Android UI view hierarchy tree for locator inspection and self-healing analysis.
+- `failure.json`: Minimal JSON metadata containing test `nodeid`, `test_name`, and execution `phase`.
 
 `test-results/` is gitignored and can be manually cleaned up as needed.
 
@@ -183,10 +209,10 @@ When any test fails during `setup` or `call` execution, pytest automatically cap
 ## Repository Structure
 
 - [`src/appium_self_heal/`](src/appium_self_heal/): Core runtime configuration and utilities.
-- [`src/appium_self_heal/screens/`](src/appium_self_heal/screens/): Screen Object models (`BaseScreen`, `ProductsScreen`, `ProductDetailsScreen`) encapsulating locators, domain actions, and reusable explicit wait synchronization.
+- [`src/appium_self_heal/screens/`](src/appium_self_heal/screens/): Screen Object models (`BaseScreen`, `ProductsScreen`, `ProductDetailsScreen`, `CartScreen`, `LoginScreen`, `CheckoutAddressScreen`, `CheckoutPaymentScreen`, `CheckoutReviewScreen`, `CheckoutCompleteScreen`) encapsulating locators, domain actions, and explicit wait synchronization.
 - [`tests/conftest.py`](tests/conftest.py): Pytest fixture managing Appium driver lifecycle and failure diagnostics hook.
 - [`tests/smoke/`](tests/smoke/): Smoke test suite verifying session creation and app readiness.
-- [`tests/e2e/`](tests/e2e/): Cross-screen E2E test suite validating user journeys and data consistency.
+- [`tests/e2e/`](tests/e2e/): Cross-screen E2E test suite validating user journeys (`test_product_details.py`, `test_cart.py`, `test_checkout.py`).
 - [`scripts/wait_for_emulator.sh`](scripts/wait_for_emulator.sh): Standalone script verifying emulator attachment and boot completion.
 - [`AGENTS.md`](AGENTS.md): Repository engineering standards, synchronization rules, and locator priorities.
 - [`ai/agent-instructions/`](ai/agent-instructions/): Canonical agent role definitions (`senior-mobile-sdet`, `test-architect`, `reviewer`).

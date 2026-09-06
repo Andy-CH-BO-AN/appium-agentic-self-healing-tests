@@ -116,13 +116,30 @@ pip install -r requirements.txt
 pip install -e ".[dev]"
 ```
 
-### 5. 下載測試目標 APK
+### 5. 設定測試帳號密碼（Test Credentials）
+結帳 E2E 測試流程需要使用者登入驗證。請複製提供的範本檔建立本地 `.env`：
+
+```bash
+cp .env.example .env
+```
+
+在 `.env` 中填入測試帳號與密碼：
+
+```env
+TEST_USERNAME=<your-test-username>
+TEST_PASSWORD=<your-test-password>
+```
+
+> [!NOTE]
+> `.env` 已加入 `.gitignore` 且嚴禁 commit。執行測試時，`config.py` 會透過 `python-dotenv` 自動載入 `.env`。若執行結帳測試時未設定測試帳密，程式將**立即 fail-fast** 並拋出清楚的 `ValueError`。非機密的固定測試假資料（運送地址、測試信用卡號等）直接在測試案例（testcase）內宣告，不放入 `.env`。
+
+### 6. 下載測試目標 APK
 ```bash
 mkdir -p apps
 curl -L -o apps/mda-2.2.0-238.apk https://github.com/saucelabs/my-demo-app-android/releases/download/2.2.0/mda-2.2.0-25.apk
 ```
 
-### 6. 啟動模擬器並確認就緒
+### 7. 啟動模擬器並確認就緒
 啟動模擬器（可加上 `-no-window` 進行 headless/CI 模式執行）：
 
 ```bash
@@ -135,13 +152,13 @@ emulator -avd appium-test-api34 -no-window -no-audio -no-boot-anim -gpu swiftsha
 ./scripts/wait_for_emulator.sh
 ```
 
-### 7. 啟動 Appium Server
+### 8. 啟動 Appium Server
 ```bash
 # 在終端機 2 執行：
 appium --address 127.0.0.1 --port 4723
 ```
 
-### 8. 執行測試
+### 9. 執行測試
 ```bash
 # 在終端機 3 執行（需先啟動 venv）：
 # Smoke 測試（App 啟動與商品列表就緒）
@@ -149,6 +166,12 @@ pytest tests/smoke/test_app_launch.py -v
 
 # 跨畫面 E2E 測試（選取商品並驗證商品詳情資料一致性）
 pytest tests/e2e/test_product_details.py -v
+
+# 跨畫面 E2E 測試（加入購物車並驗證購物車資料一致性）
+pytest tests/e2e/test_cart.py -v
+
+# 完整流程 E2E 測試（登入、填寫寄送地址、付款資訊至結帳完成）
+pytest tests/e2e/test_checkout.py -v
 
 # 執行全部測試
 pytest tests/ -v
@@ -158,10 +181,12 @@ pytest tests/ -v
 
 ## 執行期設定（Configuration）
 
-各項參數可透過環境變數彈性覆寫：
+各項參數可透過環境變數或 `.env` 彈性覆寫：
 
 | 環境變數 | 預設值 | 說明 |
 |---|---|---|
+| `TEST_USERNAME` | *(無)* | 結帳 E2E 測試必要參數；未設定時立即 fail-fast |
+| `TEST_PASSWORD` | *(無)* | 結帳 E2E 測試必要參數；未設定時立即 fail-fast |
 | `APPIUM_SERVER_URL` | `http://127.0.0.1:4723` | Appium Server 服務連線位址 |
 | `ANDROID_PLATFORM_VERSION` | `"14"` | Android 目標平台版本 |
 | `ANDROID_DEVICE_NAME` | `"Android Emulator"` | Appium capabilities 裝置名稱 |
@@ -176,6 +201,7 @@ pytest tests/ -v
 當任何測試在 `setup` 或 `call` 階段執行失敗時，pytest hook 會自動於當下仍活躍的 driver session 擷取診斷檔案並輸出至 `test-results/<test-id>/`：
 - `screenshot.png`：失敗當下的畫面截圖。
 - `page-source.xml`：Android UI 視圖階層樹狀 XML，供 locator 檢視與後續 self-healing 分析。
+- `failure.json`：包含測試 `nodeid`、`test_name` 與執行 `phase` 的最小診斷 JSON。
 
 `test-results/` 已加入 `.gitignore`，不會進入版本控管，可視需要手動清理。
 
@@ -184,10 +210,10 @@ pytest tests/ -v
 ## 專案目錄結構
 
 - [`src/appium_self_heal/`](src/appium_self_heal/)：核心執行期設定模組與共用工具。
-- [`src/appium_self_heal/screens/`](src/appium_self_heal/screens/)：Screen Object 模型（`BaseScreen`、`ProductsScreen`、`ProductDetailsScreen`），封裝畫面 locators、領域操作與可重複使用的明確等待同步基元。
+- [`src/appium_self_heal/screens/`](src/appium_self_heal/screens/)：Screen Object 模型（`BaseScreen`、`ProductsScreen`、`ProductDetailsScreen`、`CartScreen`、`LoginScreen`、`CheckoutAddressScreen`、`CheckoutPaymentScreen`、`CheckoutReviewScreen`、`CheckoutCompleteScreen`），封裝畫面 locators、領域操作與明確等待同步基元。
 - [`tests/conftest.py`](tests/conftest.py)：管理 Appium WebDriver 生命週期與失敗診斷收集 hook 的 pytest fixture。
 - [`tests/smoke/`](tests/smoke/)：驗證 session 建立與 App 就緒的 smoke test 測試集。
-- [`tests/e2e/`](tests/e2e/)：驗證跨畫面使用者旅程與資料一致性的 E2E 測試集。
+- [`tests/e2e/`](tests/e2e/)：驗證跨畫面使用者旅程與資料一致性的 E2E 測試集（`test_product_details.py`、`test_cart.py`、`test_checkout.py`）。
 - [`scripts/wait_for_emulator.sh`](scripts/wait_for_emulator.sh)：獨立之環境就緒檢查腳本，具備逾時控制。
 - [`AGENTS.md`](AGENTS.md)：定義 repository 全域工程規範、狀態同步準則與 locator 優先階層。
 - [`ai/agent-instructions/`](ai/agent-instructions/)：專責 Agent 角色的規範單一真相來源（`senior-mobile-sdet`、`test-architect`、`reviewer`）。
