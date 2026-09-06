@@ -110,7 +110,10 @@ appium driver install uiautomator2
 ```bash
 python3 -m venv .venv
 source .venv/bin/activate
-pip install -e .
+pip install -r requirements.txt
+
+# 或以可編輯開發模式安裝：
+pip install -e ".[dev]"
 ```
 
 ### 5. 下載測試目標 APK

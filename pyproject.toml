@@ -9,6 +9,11 @@ dependencies = [
     "Appium-Python-Client>=4.0.0",
 ]
 
+[project.optional-dependencies]
+dev = [
+    "ruff>=0.1.0",
+]
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 pythonpath = ["src"]
