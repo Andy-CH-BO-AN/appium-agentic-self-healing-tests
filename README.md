@@ -140,7 +140,14 @@ appium --address 127.0.0.1 --port 4723
 ### 8. Run Tests
 ```bash
 # In Terminal 3 (with venv active):
+# Smoke test (app launch and Products screen readiness)
 pytest tests/smoke/test_app_launch.py -v
+
+# E2E test (cross-screen product selection and details validation)
+pytest tests/e2e/test_product_details.py -v
+
+# Run all tests
+pytest tests/ -v
 ```
 
 ---
@@ -160,11 +167,23 @@ Settings can be customized via environment variables:
 
 ---
 
+## Failure Diagnostics
+
+When any test fails during `setup` or `call` execution, pytest automatically captures failure artifacts to `test-results/<test-id>/`:
+- `screenshot.png`: Visual snapshot of the screen at the moment of failure.
+- `page-source.xml`: Current Android UI view hierarchy tree for locator inspection and self-healing analysis.
+
+`test-results/` is gitignored and can be manually cleaned up as needed.
+
+---
+
 ## Repository Structure
 
 - [`src/appium_self_heal/`](src/appium_self_heal/): Core runtime configuration and utilities.
-- [`tests/conftest.py`](tests/conftest.py): Pytest fixture managing Appium driver lifecycle and session teardown.
-- [`tests/smoke/`](tests/smoke/): Smoke test suite verifying session creation, app launch, and UI synchronization.
+- [`src/appium_self_heal/screens/`](src/appium_self_heal/screens/): Screen Object models (`BaseScreen`, `ProductsScreen`, `ProductDetailsScreen`) encapsulating locators, domain actions, and reusable explicit wait synchronization.
+- [`tests/conftest.py`](tests/conftest.py): Pytest fixture managing Appium driver lifecycle and failure diagnostics hook.
+- [`tests/smoke/`](tests/smoke/): Smoke test suite verifying session creation and app readiness.
+- [`tests/e2e/`](tests/e2e/): Cross-screen E2E test suite validating user journeys and data consistency.
 - [`scripts/wait_for_emulator.sh`](scripts/wait_for_emulator.sh): Standalone script verifying emulator attachment and boot completion.
 - [`AGENTS.md`](AGENTS.md): Repository engineering standards, synchronization rules, and locator priorities.
 - [`ai/agent-instructions/`](ai/agent-instructions/): Canonical agent role definitions (`senior-mobile-sdet`, `test-architect`, `reviewer`).
