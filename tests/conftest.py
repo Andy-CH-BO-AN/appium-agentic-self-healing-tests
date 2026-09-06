@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import hashlib
 import logging
 import re
 from pathlib import Path
@@ -17,9 +18,11 @@ logger = logging.getLogger(__name__)
 
 
 def _to_safe_test_id(nodeid: str) -> str:
-    """Convert pytest nodeid into a deterministic and filesystem-safe directory name."""
+    """Convert pytest nodeid into a deterministic, filesystem-safe, and unique directory name."""
     safe_name = re.sub(r"[^\w\-.]", "_", nodeid)
-    return re.sub(r"_+", "_", safe_name).strip("_")
+    safe_name = re.sub(r"_+", "_", safe_name).strip("_")
+    digest = hashlib.sha256(nodeid.encode("utf-8")).hexdigest()[:10]
+    return f"{safe_name}-{digest}"
 
 
 def _capture_failure_diagnostics(driver: webdriver.Remote, nodeid: str) -> None:

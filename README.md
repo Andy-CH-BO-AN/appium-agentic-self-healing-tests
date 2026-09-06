@@ -173,7 +173,7 @@ When any test fails during `setup` or `call` execution, pytest automatically cap
 - `screenshot.png`: Visual snapshot of the screen at the moment of failure.
 - `page-source.xml`: Current Android UI view hierarchy tree for locator inspection and self-healing analysis.
 
-`test-results/` is gitignored and cleaned up between local runs.
+`test-results/` is gitignored and can be manually cleaned up as needed.
 
 ---
 

@@ -39,4 +39,4 @@ class ProductsScreen(BaseScreen):
         )
         product_card = self.wait_clickable((AppiumBy.ANDROID_UIAUTOMATOR, selector))
         product_card.click()
-        return ProductDetailsScreen(self.driver)
+        return ProductDetailsScreen(self.driver).wait_until_loaded()

@@ -2,16 +2,12 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
+from appium.webdriver import Remote
+from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 
 from appium_self_heal.config import config
-
-if TYPE_CHECKING:
-    from appium.webdriver import Remote
-    from selenium.webdriver.remote.webelement import WebElement
 
 
 class BaseScreen:

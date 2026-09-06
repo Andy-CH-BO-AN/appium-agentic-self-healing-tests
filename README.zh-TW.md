@@ -174,7 +174,7 @@ pytest tests/ -v
 - `screenshot.png`：失敗當下的畫面截圖。
 - `page-source.xml`：Android UI 視圖階層樹狀 XML，供 locator 檢視與後續 self-healing 分析。
 
-`test-results/` 已加入 `.gitignore`，不會進入版本控管。
+`test-results/` 已加入 `.gitignore`，不會進入版本控管，可視需要手動清理。
 
 ---
 

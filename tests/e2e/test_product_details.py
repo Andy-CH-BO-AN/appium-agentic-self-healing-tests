@@ -2,12 +2,9 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from appium.webdriver import Remote
 
 from appium_self_heal.screens import ProductsScreen
-
-if TYPE_CHECKING:
-    from appium.webdriver import Remote
 
 
 def test_select_product_displays_consistent_details(appium_driver: Remote) -> None:
