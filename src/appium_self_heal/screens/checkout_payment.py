@@ -11,17 +11,11 @@ from appium_self_heal.screens.checkout_review import CheckoutReviewScreen
 class CheckoutPaymentScreen(BaseScreen):
     """Encapsulates UI interactions and observable state on the Checkout Payment screen."""
 
-    _SUBTITLE_LOCATOR = (
-        AppiumBy.ID,
-        "com.saucelabs.mydemoapp.android:id/enterPaymentMethodTV",
-    )
-    _NAME_INPUT = (AppiumBy.ID, "com.saucelabs.mydemoapp.android:id/nameET")
-    _CARD_NUMBER_INPUT = (AppiumBy.ID, "com.saucelabs.mydemoapp.android:id/cardNumberET")
-    _EXPIRATION_DATE_INPUT = (
-        AppiumBy.ID,
-        "com.saucelabs.mydemoapp.android:id/expirationDateET",
-    )
-    _SECURITY_CODE_INPUT = (AppiumBy.ID, "com.saucelabs.mydemoapp.android:id/securityCodeET")
+    _SUBTITLE_LOCATOR = (AppiumBy.ID, "enterPaymentMethodTV")
+    _NAME_INPUT = (AppiumBy.ID, "nameET")
+    _CARD_NUMBER_INPUT = (AppiumBy.ID, "cardNumberET")
+    _EXPIRATION_DATE_INPUT = (AppiumBy.ID, "expirationDateET")
+    _SECURITY_CODE_INPUT = (AppiumBy.ID, "securityCodeET")
     _REVIEW_ORDER_BUTTON = (
         AppiumBy.ACCESSIBILITY_ID,
         "Saves payment info and launches screen to review checkout data",
@@ -44,11 +38,6 @@ class CheckoutPaymentScreen(BaseScreen):
         self.wait_visible(self._CARD_NUMBER_INPUT).send_keys(card_number)
         self.wait_visible(self._EXPIRATION_DATE_INPUT).send_keys(expiration_date)
         self.wait_visible(self._SECURITY_CODE_INPUT).send_keys(security_code)
-
-        try:
-            self.driver.hide_keyboard()
-        except Exception:
-            pass
 
         review_btn = self.wait_clickable(self._REVIEW_ORDER_BUTTON)
         review_btn.click()

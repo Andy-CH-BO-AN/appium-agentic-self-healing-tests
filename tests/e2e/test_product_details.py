@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from appium.webdriver import Remote
 
-from appium_self_heal.screens import ProductsScreen
+from appium_self_heal.screens.products import ProductsScreen
 
 
 def test_select_product_displays_consistent_details(appium_driver: Remote) -> None:

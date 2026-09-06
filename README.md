@@ -125,8 +125,8 @@ cp .env.example .env
 Set valid test credentials in `.env`:
 
 ```env
-TEST_USERNAME=bod@example.com
-TEST_PASSWORD=100#$a
+TEST_USERNAME=<your-test-username>
+TEST_PASSWORD=<your-test-password>
 ```
 
 > [!NOTE]

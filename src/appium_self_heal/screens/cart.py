@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from appium.webdriver.common.appiumby import AppiumBy
+from selenium.common.exceptions import TimeoutException
 
 from appium_self_heal.screens.base import BaseScreen
 from appium_self_heal.screens.login import LoginScreen
@@ -35,7 +36,7 @@ class CartScreen(BaseScreen):
         try:
             self.wait_visible((AppiumBy.ANDROID_UIAUTOMATOR, selector))
             return True
-        except Exception:
+        except TimeoutException:
             return False
 
     def product_price(self, product_name: str) -> str:
@@ -46,11 +47,9 @@ class CartScreen(BaseScreen):
         )
         return self.wait_visible((AppiumBy.ANDROID_UIAUTOMATOR, selector)).text
 
-    def product_quantity(self, product_name: str) -> int:
-        """Return the quantity for a product in the cart."""
-        return int(
-            self.wait_visible((AppiumBy.ID, "com.saucelabs.mydemoapp.android:id/noTV")).text
-        )
+    def cart_quantity(self) -> int:
+        """Return the item quantity displayed in the cart."""
+        return int(self.wait_visible((AppiumBy.ID, "noTV")).text)
 
     def checkout(self) -> LoginScreen:
         """Proceed to checkout and navigate to the login screen."""

@@ -11,7 +11,7 @@ from appium_self_heal.screens.product_details import ProductDetailsScreen
 class ProductsScreen(BaseScreen):
     """Encapsulates UI interactions and observable state on the Products catalog screen."""
 
-    _TITLE_LOCATOR = (AppiumBy.ID, "com.saucelabs.mydemoapp.android:id/productTV")
+    _TITLE_LOCATOR = (AppiumBy.ID, "productTV")
 
     @property
     def title(self) -> str:

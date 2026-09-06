@@ -11,15 +11,12 @@ from appium_self_heal.screens.checkout_payment import CheckoutPaymentScreen
 class CheckoutAddressScreen(BaseScreen):
     """Encapsulates UI interactions and observable state on the Checkout Address screen."""
 
-    _SUBTITLE_LOCATOR = (
-        AppiumBy.ID,
-        "com.saucelabs.mydemoapp.android:id/enterShippingAddressTV",
-    )
-    _FULL_NAME_INPUT = (AppiumBy.ID, "com.saucelabs.mydemoapp.android:id/fullNameET")
-    _ADDRESS1_INPUT = (AppiumBy.ID, "com.saucelabs.mydemoapp.android:id/address1ET")
-    _CITY_INPUT = (AppiumBy.ID, "com.saucelabs.mydemoapp.android:id/cityET")
-    _ZIP_INPUT = (AppiumBy.ID, "com.saucelabs.mydemoapp.android:id/zipET")
-    _COUNTRY_INPUT = (AppiumBy.ID, "com.saucelabs.mydemoapp.android:id/countryET")
+    _SUBTITLE_LOCATOR = (AppiumBy.ID, "enterShippingAddressTV")
+    _FULL_NAME_INPUT = (AppiumBy.ID, "fullNameET")
+    _ADDRESS1_INPUT = (AppiumBy.ID, "address1ET")
+    _CITY_INPUT = (AppiumBy.ID, "cityET")
+    _ZIP_INPUT = (AppiumBy.ID, "zipET")
+    _COUNTRY_INPUT = (AppiumBy.ID, "countryET")
     _TO_PAYMENT_BUTTON = (
         AppiumBy.ANDROID_UIAUTOMATOR,
         'new UiScrollable(new UiSelector().scrollable(true))'
@@ -49,11 +46,6 @@ class CheckoutAddressScreen(BaseScreen):
 
         self.wait_visible(self._ZIP_INPUT).send_keys(zip_code)
         self.wait_visible(self._COUNTRY_INPUT).send_keys(country)
-
-        try:
-            self.driver.hide_keyboard()
-        except Exception:
-            pass
 
         payment_btn.click()
         return CheckoutPaymentScreen(self.driver).wait_until_loaded()

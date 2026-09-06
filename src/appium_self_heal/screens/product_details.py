@@ -16,15 +16,15 @@ class ProductDetailsScreen(BaseScreen):
         AppiumBy.ACCESSIBILITY_ID,
         "Displays available colors of selected product",
     )
-    _TITLE_LOCATOR = (AppiumBy.ID, "com.saucelabs.mydemoapp.android:id/productTV")
-    _PRICE_LOCATOR = (AppiumBy.ID, "com.saucelabs.mydemoapp.android:id/priceTV")
+    _TITLE_LOCATOR = (AppiumBy.ID, "productTV")
+    _PRICE_LOCATOR = (AppiumBy.ID, "priceTV")
     _ADD_TO_CART_SCROLL = (
         AppiumBy.ANDROID_UIAUTOMATOR,
         'new UiScrollable(new UiSelector().scrollable(true))'
         '.scrollIntoView(new UiSelector().description("Tap to add product to cart"))',
     )
     _ADD_TO_CART_BUTTON = (AppiumBy.ACCESSIBILITY_ID, "Tap to add product to cart")
-    _CART_BADGE = (AppiumBy.ID, "com.saucelabs.mydemoapp.android:id/cartTV")
+    _CART_BADGE = (AppiumBy.ID, "cartTV")
     _CART_ICON = (AppiumBy.ACCESSIBILITY_ID, "View cart")
 
     def wait_until_loaded(self) -> ProductDetailsScreen:

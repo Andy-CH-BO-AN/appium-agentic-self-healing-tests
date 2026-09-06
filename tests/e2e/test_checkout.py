@@ -5,7 +5,7 @@ from __future__ import annotations
 from appium.webdriver import Remote
 
 from appium_self_heal.config import config
-from appium_self_heal.screens import ProductsScreen
+from appium_self_heal.screens.products import ProductsScreen
 
 
 def test_complete_checkout(appium_driver: Remote) -> None:
@@ -15,6 +15,10 @@ def test_complete_checkout(appium_driver: Remote) -> None:
     proceeds through authentication with test credentials, submits shipping and payment
     details, places the order, and verifies the final confirmation state.
     """
+    # Resolve credentials immediately before starting UI journey to guarantee fail-fast
+    username = config.test_username
+    password = config.test_password
+
     target_product = "Sauce Labs Backpack"
 
     # Deterministic test data for checkout flow
@@ -37,8 +41,8 @@ def test_complete_checkout(appium_driver: Remote) -> None:
     login_screen = cart_screen.checkout()
 
     address_screen = login_screen.login(
-        config.test_username,
-        config.test_password,
+        username,
+        password,
     )
     payment_screen = address_screen.continue_to_payment(
         full_name=shipping_full_name,

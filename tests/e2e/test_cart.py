@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from appium.webdriver import Remote
 
-from appium_self_heal.screens import ProductsScreen
+from appium_self_heal.screens.products import ProductsScreen
 
 
 def test_add_product_to_cart(appium_driver: Remote) -> None:
@@ -25,4 +25,4 @@ def test_add_product_to_cart(appium_driver: Remote) -> None:
 
     assert cart_screen.has_product(target_product)
     assert cart_screen.product_price(target_product) == expected_price
-    assert cart_screen.product_quantity(target_product) == 1
+    assert cart_screen.cart_quantity() == 1
