@@ -14,6 +14,7 @@ from appium import webdriver
 from appium.options.android import UiAutomator2Options
 
 from appium_self_heal.config import config
+from appium_self_heal.diagnostics import build_failure_context, redact_page_source
 
 logger = logging.getLogger(__name__)
 
@@ -26,12 +27,21 @@ def _to_safe_test_id(nodeid: str) -> str:
     return f"{safe_name}-{digest}"
 
 
+def _safe_driver_attr(driver: webdriver.Remote, name: str) -> str | None:
+    """Read a driver property for diagnostics without letting its failure propagate."""
+    try:
+        return getattr(driver, name)
+    except Exception:
+        return None
+
+
 def _capture_failure_diagnostics(
     driver: webdriver.Remote,
     nodeid: str,
     phase: str = "call",
+    exc: BaseException | None = None,
 ) -> None:
-    """Capture screenshot, page source, and minimal failure metadata for a failed test.
+    """Capture screenshot, redacted page source, and structured failure context.
 
     Guarantees that diagnostic errors never mask or replace the original test failure.
     """
@@ -39,25 +49,33 @@ def _capture_failure_diagnostics(
         test_id = _to_safe_test_id(nodeid)
         results_dir = Path("test-results") / test_id
         results_dir.mkdir(parents=True, exist_ok=True)
+        sensitive_values = config.sensitive_values
 
         screenshot_path = results_dir / "screenshot.png"
         driver.save_screenshot(str(screenshot_path))
 
-        page_source_path = results_dir / "page-source.xml"
-        page_source_path.write_text(driver.page_source, encoding="utf-8")
-
+        failure_data = build_failure_context(
+            nodeid=nodeid,
+            phase=phase,
+            exc=exc,
+            current_package=_safe_driver_attr(driver, "current_package"),
+            current_activity=_safe_driver_attr(driver, "current_activity"),
+            sensitive_values=sensitive_values,
+        )
         failure_path = results_dir / "failure.json"
-        failure_data = {
-            "nodeid": nodeid,
-            "test_name": nodeid.split("::")[-1],
-            "phase": phase,
-        }
         failure_path.write_text(json.dumps(failure_data, indent=2), encoding="utf-8")
-    except Exception as exc:
+
+        # Never persist page source that could not be redacted.
+        page_source_path = results_dir / "page-source.xml"
+        page_source_path.write_text(
+            redact_page_source(driver.page_source, sensitive_values),
+            encoding="utf-8",
+        )
+    except Exception as diag_exc:
         logger.warning(
             "Failed to capture test failure diagnostics for %s: %s",
             nodeid,
-            exc,
+            diag_exc,
             exc_info=True,
         )
 
@@ -74,7 +92,8 @@ def pytest_runtest_makereport(
     if report.when in ("setup", "call") and report.failed:
         driver = item.funcargs.get("appium_driver") if hasattr(item, "funcargs") else None
         if driver is not None:
-            _capture_failure_diagnostics(driver, item.nodeid, phase=report.when)
+            exc = call.excinfo.value if call.excinfo is not None else None
+            _capture_failure_diagnostics(driver, item.nodeid, phase=report.when, exc=exc)
 
 
 @pytest.fixture(scope="function")

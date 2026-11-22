@@ -200,8 +200,15 @@ pytest tests/ -v
 
 當任何測試在 `setup` 或 `call` 階段執行失敗時，pytest hook 會自動於當下仍活躍的 driver session 擷取診斷檔案並輸出至 `test-results/<test-id>/`：
 - `screenshot.png`：失敗當下的畫面截圖。
-- `page-source.xml`：Android UI 視圖階層樹狀 XML，供 locator 檢視與後續 self-healing 分析。
-- `failure.json`：包含測試 `nodeid`、`test_name` 與執行 `phase` 的最小診斷 JSON。
+- `page-source.xml`：Android UI 視圖階層樹狀 XML，供 locator 檢視與後續 self-healing 分析。`TEST_USERNAME` / `TEST_PASSWORD` 的值以及 `password="true"` 節點的 `text` 會被替換為 `[REDACTED]`；若無法解析以完成遮蔽，則不寫出此檔。
+- `failure.json`：結構化失敗脈絡：
+  - `nodeid`、`test_name`、`phase`
+  - `app_state`：失敗當下的 `current_package` 與 `current_activity`
+  - `failure_kind`：`locator_timeout`、`assertion` 或 `other`（僅 `locator_timeout` 為 self-healing 候選）
+  - `exception`：`type`、`message`、`traceback`（已遮蔽敏感值）
+  - `locator`（僅 `locator_timeout`）：`screen`、`locator_name`（Screen Object 屬性名稱；動態組成的 locator 為 `null`）、`strategy`、`value`、`condition`、`timeout_seconds`
+
+`BaseScreen` 的明確等待逾時時會拋出 `LocatorTimeoutError`（繼承 Selenium `TimeoutException`），並攜帶上述 locator 脈絡。
 
 `test-results/` 已加入 `.gitignore`，不會進入版本控管，可視需要手動清理。
 
@@ -212,6 +219,7 @@ pytest tests/ -v
 - [`src/appium_self_heal/`](src/appium_self_heal/)：核心執行期設定模組與共用工具。
 - [`src/appium_self_heal/screens/`](src/appium_self_heal/screens/)：Screen Object 模型（`BaseScreen`、`ProductsScreen`、`ProductDetailsScreen`、`CartScreen`、`LoginScreen`、`CheckoutAddressScreen`、`CheckoutPaymentScreen`、`CheckoutReviewScreen`、`CheckoutCompleteScreen`），封裝畫面 locators、領域操作與明確等待同步基元。
 - [`tests/conftest.py`](tests/conftest.py)：管理 Appium WebDriver 生命週期、測試帳密 fixture 與失敗診斷收集 hook 的 pytest fixtures。
+- [`src/appium_self_heal/diagnostics.py`](src/appium_self_heal/diagnostics.py)：失敗分類、結構化 `failure.json` 內容與 page source 遮蔽的純函式。
 - [`tests/smoke/`](tests/smoke/)：驗證 session 建立與 App 就緒的 smoke test 測試集。
 - [`tests/e2e/`](tests/e2e/)：驗證跨畫面使用者旅程與資料一致性的 E2E 測試集（`test_product_details.py`、`test_cart.py`、`test_checkout.py`）。
 - [`scripts/wait_for_emulator.sh`](scripts/wait_for_emulator.sh)：獨立之環境就緒檢查腳本，具備逾時控制。
