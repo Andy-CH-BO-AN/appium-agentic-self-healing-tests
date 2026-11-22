@@ -42,6 +42,16 @@ class AppiumConfig:
             )
         return password
 
+    @property
+    def sensitive_values(self) -> tuple[str, ...]:
+        """Return configured secret values that must be redacted from diagnostics.
+
+        Unlike test_username/test_password, never raises when values are unset.
+        """
+        return tuple(
+            value for value in (os.getenv("TEST_USERNAME"), os.getenv("TEST_PASSWORD")) if value
+        )
+
 
 # Default singleton instance for direct import
 config = AppiumConfig()

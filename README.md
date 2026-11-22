@@ -199,8 +199,15 @@ Settings can be customized via environment variables or `.env`:
 
 When any test fails during `setup` or `call` execution, pytest automatically captures failure artifacts to `test-results/<test-id>/`:
 - `screenshot.png`: Visual snapshot of the screen at the moment of failure.
-- `page-source.xml`: Current Android UI view hierarchy tree for locator inspection and self-healing analysis.
-- `failure.json`: Minimal JSON metadata containing test `nodeid`, `test_name`, and execution `phase`.
+- `page-source.xml`: Current Android UI view hierarchy tree for locator inspection and self-healing analysis. Values of `TEST_USERNAME` / `TEST_PASSWORD` and the `text` of `password="true"` nodes are replaced with `[REDACTED]`; if the source cannot be parsed for redaction it is not written.
+- `failure.json`: Structured failure context:
+  - `nodeid`, `test_name`, `phase`
+  - `app_state`: `current_package` and `current_activity` at failure time
+  - `failure_kind`: `locator_timeout`, `assertion`, or `other` (only `locator_timeout` is a self-healing candidate)
+  - `exception`: `type`, `message`, and `traceback` (secrets redacted)
+  - `locator` (only for `locator_timeout`): `screen`, `locator_name` (the Screen Object attribute, or `null` for dynamically built locators), `strategy`, `value`, `condition`, `timeout_seconds`
+
+Explicit waits in `BaseScreen` raise `LocatorTimeoutError` (a subclass of Selenium's `TimeoutException`) carrying this locator context.
 
 `test-results/` is gitignored and can be manually cleaned up as needed.
 
@@ -211,6 +218,7 @@ When any test fails during `setup` or `call` execution, pytest automatically cap
 - [`src/appium_self_heal/`](src/appium_self_heal/): Core runtime configuration and utilities.
 - [`src/appium_self_heal/screens/`](src/appium_self_heal/screens/): Screen Object models (`BaseScreen`, `ProductsScreen`, `ProductDetailsScreen`, `CartScreen`, `LoginScreen`, `CheckoutAddressScreen`, `CheckoutPaymentScreen`, `CheckoutReviewScreen`, `CheckoutCompleteScreen`) encapsulating locators, domain actions, and explicit wait synchronization.
 - [`tests/conftest.py`](tests/conftest.py): Pytest fixtures managing Appium driver lifecycle, test credentials, and failure diagnostics hook.
+- [`src/appium_self_heal/diagnostics.py`](src/appium_self_heal/diagnostics.py): Pure helpers for failure classification, structured `failure.json` context, and page source redaction.
 - [`tests/smoke/`](tests/smoke/): Smoke test suite verifying session creation and app readiness.
 - [`tests/e2e/`](tests/e2e/): Cross-screen E2E test suite validating user journeys (`test_product_details.py`, `test_cart.py`, `test_checkout.py`).
 - [`scripts/wait_for_emulator.sh`](scripts/wait_for_emulator.sh): Standalone script verifying emulator attachment and boot completion.
